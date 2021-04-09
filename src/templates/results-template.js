@@ -11,7 +11,7 @@ export default model => {
   `;
 
   const area =
-    model.pointCount <= 2
+    model.pointCount <= 2 || !model.showArea
       ? ''
       : `
     <div class="group">

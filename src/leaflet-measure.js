@@ -66,7 +66,8 @@ L.Control.Measure = L.Control.extend({
 
     const $toggle = (this.$toggle = $('.js-toggle', container)); // collapsed content
     this.$interaction = $('.js-interaction', container); // expanded content
-    const $start = $('.js-start', container); // start button
+    const $startArea = $('.js-start-area', container); // start area button
+    const $startLine = $('.js-start-line', container); // start line button
     const $cancel = $('.js-cancel', container); // cancel button
     const $finish = $('.js-finish', container); // finish button
     this.$startPrompt = $('.js-startprompt', container); // full area with button to start measurment
@@ -88,8 +89,10 @@ L.Control.Measure = L.Control.extend({
     } else {
       L.DomEvent.on($toggle, 'focus', this._expand, this);
     }
-    L.DomEvent.on($start, 'click', L.DomEvent.stop);
-    L.DomEvent.on($start, 'click', this._startArea, this);
+    L.DomEvent.on($startArea, 'click', L.DomEvent.stop);
+    L.DomEvent.on($startLine, 'click', L.DomEvent.stop);
+    L.DomEvent.on($startArea, 'click', this._startArea, this);
+    L.DomEvent.on($startLine, 'click', this._startLine, this);
     L.DomEvent.on($cancel, 'click', L.DomEvent.stop);
     L.DomEvent.on($cancel, 'click', this._finishMeasure, this);
     L.DomEvent.on($finish, 'click', L.DomEvent.stop);
@@ -127,6 +130,14 @@ L.Control.Measure = L.Control.extend({
     dom.show(this.$measureTasks);
     dom.hide(this.$startPrompt);
     dom.show(this.$measuringPrompt);
+  },
+  _startArea: function() {
+    this._closeShape = true;
+    this._startMeasure();
+  },
+  _startLine: function() {
+    this._closeShape = false;
+    this._startMeasure();
   },
   // get state vars and interface ready for measure
   _startMeasure: function() {
@@ -274,7 +285,8 @@ L.Control.Measure = L.Control.extend({
       calced,
       this._getMeasurementDisplayStrings(calced),
       {
-        pointCount: this._latlngs.length
+        pointCount: this._latlngs.length,
+        showArea: this._closeShape
       }
     ));
     this.$results.innerHTML = resultsTemplate(model);
@@ -303,21 +315,18 @@ L.Control.Measure = L.Control.extend({
       return;
     }
 
-    if (latlngs.length > 2) {
-      latlngs.push(latlngs[0]); // close path to get full perimeter measurement for areas
-    }
-
     const calced = calc(latlngs);
 
     if (latlngs.length === 1) {
       resultFeature = L.circleMarker(latlngs[0], this._symbols.getSymbol('resultPoint'));
       popupContent = pointPopupTemplate(calced);
-    } else if (latlngs.length === 2) {
+    } else if (latlngs.length === 2 || !this._closeShape) {
       resultFeature = L.polyline(latlngs, this._symbols.getSymbol('resultLine'));
       popupContent = linePopupTemplate(
         L.extend({}, calced, this._getMeasurementDisplayStrings(calced))
       );
     } else {
+      latlngs.push(latlngs[0]); // close path to get full perimeter measurement for areas
       resultFeature = L.polygon(latlngs, this._symbols.getSymbol('resultArea'));
       popupContent = areaPopupTemplate(
         L.extend({}, calced, this._getMeasurementDisplayStrings(calced))
@@ -379,8 +388,10 @@ L.Control.Measure = L.Control.extend({
     if (!lastClick || !latlng.equals(lastClick)) {
       // skip if same point as last click, happens on `dblclick`
       this._latlngs.push(latlng);
-      this._addMeasureArea(this._latlngs);
       this._addMeasureBoundary(this._latlngs);
+      if (this._closeShape) {
+        this._addMeasureArea(this._latlngs);
+      }
 
       this._measureVertexes.eachLayer(function(layer) {
         layer.setStyle(vertexSymbol);
