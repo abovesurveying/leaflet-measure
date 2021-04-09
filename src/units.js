@@ -5,47 +5,47 @@
 export default {
   acres: {
     factor: 0.00024711,
-    display: 'acres',
+    display: 'Acres',
     decimals: 2
   },
   feet: {
     factor: 3.2808,
-    display: 'feet',
+    display: 'Feet',
     decimals: 0
   },
   kilometers: {
     factor: 0.001,
-    display: 'kilometers',
+    display: 'Kilometers',
     decimals: 2
   },
   hectares: {
     factor: 0.0001,
-    display: 'hectares',
+    display: 'Hectares',
     decimals: 2
   },
   meters: {
     factor: 1,
-    display: 'meters',
+    display: 'Meters',
     decimals: 0
   },
   miles: {
     factor: 3.2808 / 5280,
-    display: 'miles',
+    display: 'Miles',
     decimals: 2
   },
   sqfeet: {
     factor: 10.7639,
-    display: 'sqfeet',
+    display: 'Sq Feet',
     decimals: 0
   },
   sqmeters: {
     factor: 1,
-    display: 'sqmeters',
+    display: 'Sq Meters',
     decimals: 0
   },
   sqmiles: {
     factor: 0.000000386102,
-    display: 'sqmiles',
+    display: 'Sq Miles',
     decimals: 2
   }
 };

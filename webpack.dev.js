@@ -2,7 +2,6 @@ const resolve = require('path').resolve;
 
 const CopyPlugin = require('copy-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const I18nPlugin = require('i18n-webpack-plugin');
 
 const BUILD_DIR = resolve(__dirname, 'dist');
 
@@ -10,11 +9,6 @@ const copyAssets = new CopyPlugin([{ from: './assets', to: 'assets', ignore: '*.
 const copySite = new CopyPlugin([{ from: './example', to: './' }]);
 
 const extractSass = new ExtractTextPlugin({ filename: 'leaflet-measure.css' });
-
-const htmlLoader = {
-  test: /\.html$/,
-  use: { loader: 'html-loader?interpolate' }
-};
 
 const scssLoader = {
   test: /\.scss$/,
@@ -33,8 +27,6 @@ const scssLoader = {
   })
 };
 
-const devLanguage = require('./languages/en.json');
-
 module.exports = {
   entry: ['./src/leaflet-measure.js'],
   output: {
@@ -45,8 +37,8 @@ module.exports = {
     contentBase: BUILD_DIR
   },
   module: {
-    rules: [htmlLoader, scssLoader]
+    rules: [scssLoader]
   },
-  plugins: [copySite, copyAssets, extractSass, new I18nPlugin(devLanguage)],
+  plugins: [copySite, copyAssets, extractSass],
   devtool: 'eval-source-map'
 };

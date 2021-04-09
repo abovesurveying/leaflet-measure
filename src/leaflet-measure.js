@@ -1,7 +1,5 @@
 import '../scss/leaflet-measure.scss';
 
-import template from 'lodash/template';
-
 import units from './units';
 import calc from './calc';
 import * as dom from './dom';
@@ -17,26 +15,17 @@ import {
   areaPopupTemplate
 } from './templates';
 
-const templateSettings = {
-  imports: { numberFormat },
-  interpolate: /{{([\s\S]+?)}}/g // mustache
-};
-const controlTemplateCompiled = template(controlTemplate, templateSettings);
-const resultsTemplateCompiled = template(resultsTemplate, templateSettings);
-const pointPopupTemplateCompiled = template(pointPopupTemplate, templateSettings);
-const linePopupTemplateCompiled = template(linePopupTemplate, templateSettings);
-const areaPopupTemplateCompiled = template(areaPopupTemplate, templateSettings);
-
 L.Control.Measure = L.Control.extend({
   _className: 'leaflet-control-measure',
   options: {
     units: {},
     position: 'topright',
-    primaryLengthUnit: 'feet',
+    primaryLengthUnit: 'meters',
     secondaryLengthUnit: 'miles',
-    primaryAreaUnit: 'acres',
-    activeColor: '#ABE67E', // base color for map features while actively measuring
-    completedColor: '#C8F2BE', // base color for permenant features generated from completed measure
+    primaryAreaUnit: 'sqmeters',
+    secondaryAreaUnit: 'sqmiles',
+    activeColor: '#c6e6a1', // base color for map features while actively measuring
+    completedColor: '#edfade', // base color for permenant features generated from completed measure
     captureZIndex: 10000, // z-index of the marker used to capture measure events
     popupOptions: {
       // standard leaflet popup options http://leafletjs.com/reference-1.3.0.html#popup-option
@@ -66,10 +55,8 @@ L.Control.Measure = L.Control.extend({
     const className = this._className,
       container = (this._container = L.DomUtil.create('div', `${className} leaflet-bar`));
 
-    container.innerHTML = controlTemplateCompiled({
-      model: {
-        className: className
-      }
+    container.innerHTML = controlTemplate({
+      className: className
     });
 
     // makes this work on IE touch devices by stopping it from firing a mouseout event when the touch is released
@@ -102,7 +89,7 @@ L.Control.Measure = L.Control.extend({
       L.DomEvent.on($toggle, 'focus', this._expand, this);
     }
     L.DomEvent.on($start, 'click', L.DomEvent.stop);
-    L.DomEvent.on($start, 'click', this._startMeasure, this);
+    L.DomEvent.on($start, 'click', this._startArea, this);
     L.DomEvent.on($cancel, 'click', L.DomEvent.stop);
     L.DomEvent.on($cancel, 'click', this._finishMeasure, this);
     L.DomEvent.on($finish, 'click', L.DomEvent.stop);
@@ -268,26 +255,14 @@ L.Control.Measure = L.Control.extend({
     }
 
     function formatMeasure(val, unit, decPoint, thousandsSep) {
-      const unitDisplays = {
-        acres: __('acres'),
-        feet: __('feet'),
-        kilometers: __('kilometers'),
-        hectares: __('hectares'),
-        meters: __('meters'),
-        miles: __('miles'),
-        sqfeet: __('sqfeet'),
-        sqmeters: __('sqmeters'),
-        sqmiles: __('sqmiles')
-      };
-
       const u = L.extend({ factor: 1, decimals: 0 }, unit);
       const formattedNumber = numberFormat(
         val * u.factor,
         u.decimals,
-        decPoint || __('decPoint'),
-        thousandsSep || __('thousandsSep')
+        decPoint || '.',
+        thousandsSep || ','
       );
-      const label = unitDisplays[u.display] || u.display;
+      const label = u.display;
       return [formattedNumber, label].join(' ');
     }
   },
@@ -302,7 +277,7 @@ L.Control.Measure = L.Control.extend({
         pointCount: this._latlngs.length
       }
     ));
-    this.$results.innerHTML = resultsTemplateCompiled({ model });
+    this.$results.innerHTML = resultsTemplate(model);
   },
   // mouse move handler while measure in progress
   // adds floating measure marker under cursor
@@ -336,19 +311,17 @@ L.Control.Measure = L.Control.extend({
 
     if (latlngs.length === 1) {
       resultFeature = L.circleMarker(latlngs[0], this._symbols.getSymbol('resultPoint'));
-      popupContent = pointPopupTemplateCompiled({
-        model: calced
-      });
+      popupContent = pointPopupTemplate(calced);
     } else if (latlngs.length === 2) {
       resultFeature = L.polyline(latlngs, this._symbols.getSymbol('resultLine'));
-      popupContent = linePopupTemplateCompiled({
-        model: L.extend({}, calced, this._getMeasurementDisplayStrings(calced))
-      });
+      popupContent = linePopupTemplate(
+        L.extend({}, calced, this._getMeasurementDisplayStrings(calced))
+      );
     } else {
       resultFeature = L.polygon(latlngs, this._symbols.getSymbol('resultArea'));
-      popupContent = areaPopupTemplateCompiled({
-        model: L.extend({}, calced, this._getMeasurementDisplayStrings(calced))
-      });
+      popupContent = areaPopupTemplate(
+        L.extend({}, calced, this._getMeasurementDisplayStrings(calced))
+      );
     }
 
     const popupContainer = L.DomUtil.create('div', '');
