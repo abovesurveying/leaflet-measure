@@ -1,11 +1,11 @@
 {
-  "name": "leaflet-measure",
-  "version": "3.1.0",
+  "name": "@abovesurveying/leaflet-measure",
+  "version": "0.0.0",
   "description": "Coordinate, linear, and area measure tool for Leaflet maps",
   "main": "dist/leaflet-measure.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/ljagis/leaflet-measure.git"
+    "url": "https://github.com/abovesurveying/leaflet-measure"
   },
   "keywords": [
     "leaflet",
@@ -20,6 +20,9 @@
     "path"
   ],
   "author": "LJA Engineering, Inc - GIS <gisdev@ljaengineering.com>",
+  "contributors": [
+    "Jack Starkey, Above Surveying <jack@abovesurveying.com>"
+  ],
   "license": "MIT",
   "scripts": {
     "lint": "eslint --ext js src/",
