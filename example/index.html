@@ -73,6 +73,17 @@
         writeResults(evt);
       });
 
+      map.measureControl.createMeasure(0, false, [
+        {
+          "lat": 29.752943560459297,
+          "lng": -95.08748531341554
+        },
+        {
+          "lat": 29.750912981241015,
+          "lng": -95.08239984512329
+        }
+      ]);
+
       function writeResults(results) {
         document.getElementById('eventoutput').innerHTML = JSON.stringify(
           {
