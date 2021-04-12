@@ -39,6 +39,13 @@ L.Control.Measure = L.Control.extend({
     this._symbols = new Symbology({ activeColor, completedColor });
     this.options.units = L.extend({}, units, this.options.units);
   },
+  createMeasure: function(id, closeShape, latlngs) {
+    this._closeShape = closeShape;
+    this._latlngs = latlngs;
+    const layer = this._createResult(false, false);
+    layer.callbackId = id;
+    this._clearMeasure();
+  },
   onAdd: function(map) {
     this._map = map;
     this._latlngs = [];
@@ -200,7 +207,9 @@ L.Control.Measure = L.Control.extend({
   _clearMeasure: function() {
     this._latlngs = [];
     this._resultsModel = null;
-    this._measureVertexes.clearLayers();
+    if (this._measureVertexes) {
+      this._measureVertexes.clearLayers();
+    }
     if (this._measureDrag) {
       this._layer.removeLayer(this._measureDrag);
     }
@@ -306,77 +315,8 @@ L.Control.Measure = L.Control.extend({
   // handler for both double click and clicking finish button
   // do final calc and finish out current measure, clear dom and internal state, add permanent map features
   _handleMeasureDoubleClick: function() {
-    const latlngs = this._latlngs;
-    let resultFeature, popupContent;
-
+    this._createResult(true, true);
     this._finishMeasure();
-
-    if (!latlngs.length) {
-      return;
-    }
-
-    const calced = calc(latlngs);
-
-    if (latlngs.length === 1) {
-      resultFeature = L.circleMarker(latlngs[0], this._symbols.getSymbol('resultPoint'));
-      popupContent = pointPopupTemplate(calced);
-    } else if (latlngs.length === 2 || !this._closeShape) {
-      resultFeature = L.polyline(latlngs, this._symbols.getSymbol('resultLine'));
-      popupContent = linePopupTemplate(
-        L.extend({}, calced, this._getMeasurementDisplayStrings(calced))
-      );
-    } else {
-      latlngs.push(latlngs[0]); // close path to get full perimeter measurement for areas
-      resultFeature = L.polygon(latlngs, this._symbols.getSymbol('resultArea'));
-      popupContent = areaPopupTemplate(
-        L.extend({}, calced, this._getMeasurementDisplayStrings(calced))
-      );
-    }
-
-    const popupContainer = L.DomUtil.create('div', '');
-    popupContainer.innerHTML = popupContent;
-
-    const zoomLink = $('.js-zoomto', popupContainer);
-    if (zoomLink) {
-      L.DomEvent.on(zoomLink, 'click', L.DomEvent.stop);
-      L.DomEvent.on(
-        zoomLink,
-        'click',
-        function() {
-          if (resultFeature.getBounds) {
-            this._map.fitBounds(resultFeature.getBounds(), {
-              padding: [20, 20],
-              maxZoom: 17
-            });
-          } else if (resultFeature.getLatLng) {
-            this._map.panTo(resultFeature.getLatLng());
-          }
-        },
-        this
-      );
-    }
-
-    const deleteLink = $('.js-deletemarkup', popupContainer);
-    if (deleteLink) {
-      L.DomEvent.on(deleteLink, 'click', L.DomEvent.stop);
-      L.DomEvent.on(
-        deleteLink,
-        'click',
-        function() {
-          // TODO. maybe remove any event handlers on zoom and delete buttons?
-          this._layer.removeLayer(resultFeature);
-        },
-        this
-      );
-    }
-
-    resultFeature.addTo(this._layer);
-    resultFeature.bindPopup(popupContainer, this.options.popupOptions);
-    if (resultFeature.getBounds) {
-      resultFeature.openPopup(resultFeature.getBounds().getCenter());
-    } else if (resultFeature.getLatLng) {
-      resultFeature.openPopup(resultFeature.getLatLng());
-    }
   },
   // handle map click during ongoing measurement
   // add new clicked point, update measure layers and results ui
@@ -421,6 +361,96 @@ L.Control.Measure = L.Control.extend({
       this._layer.removeLayer(this._measureDrag);
       this._measureDrag = null;
     }
+  },
+  _createResult: function(openPopup, enableSaving) {
+    const latlngs = this._latlngs;
+    let resultFeature, popupContent;
+
+    if (!latlngs.length) {
+      return;
+    }
+
+    const calced = calc(latlngs);
+    const model = L.extend(
+      { showSave: enableSaving },
+      calced,
+      this._getMeasurementDisplayStrings(calced)
+    );
+
+    if (latlngs.length === 1) {
+      resultFeature = L.circleMarker(latlngs[0], this._symbols.getSymbol('resultPoint'));
+      popupContent = pointPopupTemplate(calced);
+    } else if (latlngs.length === 2 || !this._closeShape) {
+      resultFeature = L.polyline(latlngs, this._symbols.getSymbol('resultLine'));
+      popupContent = linePopupTemplate(model);
+    } else {
+      latlngs.push(latlngs[0]); // close path to get full perimeter measurement for areas
+      resultFeature = L.polygon(latlngs, this._symbols.getSymbol('resultArea'));
+      popupContent = areaPopupTemplate(model);
+    }
+
+    const popupContainer = L.DomUtil.create('div', '');
+    popupContainer.innerHTML = popupContent;
+
+    const zoomLink = $('.js-zoomto', popupContainer);
+    if (zoomLink) {
+      L.DomEvent.on(zoomLink, 'click', L.DomEvent.stop);
+      L.DomEvent.on(
+        zoomLink,
+        'click',
+        function() {
+          if (resultFeature.getBounds) {
+            this._map.fitBounds(resultFeature.getBounds(), {
+              padding: [20, 20],
+              maxZoom: 17
+            });
+          } else if (resultFeature.getLatLng) {
+            this._map.panTo(resultFeature.getLatLng());
+          }
+        },
+        this
+      );
+    }
+
+    const deleteLink = $('.js-deletemarkup', popupContainer);
+    if (deleteLink) {
+      L.DomEvent.on(deleteLink, 'click', L.DomEvent.stop);
+      L.DomEvent.on(
+        deleteLink,
+        'click',
+        function() {
+          // TODO. maybe remove any event handlers on zoom and delete buttons?
+          this._map.fire('measuredelete', { layer: resultFeature });
+          this._layer.removeLayer(resultFeature);
+        },
+        this
+      );
+    }
+
+    const saveLink = $('.js-savemarkup', popupContainer);
+    if (saveLink) {
+      L.DomEvent.on(saveLink, 'click', L.DomEvent.stop);
+      L.DomEvent.on(
+        saveLink,
+        'click',
+        function() {
+          this._map.fire('measuresave', { layer: resultFeature });
+          L.DomUtil.remove(saveLink);
+        },
+        this
+      );
+    }
+
+    resultFeature.addTo(this._layer);
+    resultFeature.bindPopup(popupContainer, this.options.popupOptions);
+    if (openPopup) {
+      const loc = resultFeature.getBounds
+        ? resultFeature.getBounds().getCenter()
+        : resultFeature.getLatLng();
+      resultFeature.openPopup(loc);
+    }
+
+    return resultFeature;
   },
   // add various measure graphics to map - vertex, area, boundary
   _addNewVertex: function(latlng) {

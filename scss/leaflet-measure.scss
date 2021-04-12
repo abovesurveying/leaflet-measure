@@ -21,7 +21,7 @@ $button-icon-spacing: 4px;
   }
 }
 
-@mixin button ($icon) {
+@mixin button($icon) {
   display: inline;
   width: auto;
   height: auto;
@@ -166,5 +166,8 @@ $button-icon-spacing: 4px;
   }
   a.deletemarkup {
     @include button(trash);
+  }
+  a.savemarkup {
+    @include button(start);
   }
 }
