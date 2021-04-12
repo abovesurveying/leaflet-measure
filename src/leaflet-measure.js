@@ -45,6 +45,8 @@ L.Control.Measure = L.Control.extend({
     const layer = this._createResult(false, false);
     layer.callbackId = id;
     this._clearMeasure();
+
+    return layer;
   },
   onAdd: function(map) {
     this._map = map;
