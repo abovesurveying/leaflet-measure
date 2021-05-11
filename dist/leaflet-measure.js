@@ -1175,7 +1175,9 @@
     'use strict';
     Object.defineProperty(t, '__esModule', { value: !0 }),
       (t.default = function(e) {
-        var t = e.showSave ? '<li><a href="#" class="js-savemarkup savemarkup">Save</a></li>' : '';
+        var t = e.showSave
+          ? '<li><a href="#" class="js-savemarkup savemarkup">Save to scan</a></li>'
+          : '';
         return (
           '\n    <h3>Linear measurement</h3>\n    <p>' +
           e.lengthDisplay +
@@ -1189,7 +1191,9 @@
     'use strict';
     Object.defineProperty(t, '__esModule', { value: !0 }),
       (t.default = function(e) {
-        var t = e.showSave ? '<li><a href="#" class="js-savemarkup savemarkup">Save</a></li>' : '';
+        var t = e.showSave
+          ? '<li><a href="#" class="js-savemarkup savemarkup">Save to scan</a></li>'
+          : '';
         return (
           '\n    <h3>Area measurement</h3>\n    <p>' +
           e.areaDisplay +
