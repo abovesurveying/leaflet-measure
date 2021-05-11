@@ -1,7 +1,7 @@
 export default model => {
   const save = !model.showSave
     ? ''
-    : `<li><a href="#" class="js-savemarkup savemarkup">Save</a></li>`;
+    : `<li><a href="#" class="js-savemarkup savemarkup">Save to scan</a></li>`;
 
   return `
     <h3>Area measurement</h3>
