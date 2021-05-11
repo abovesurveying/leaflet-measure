@@ -23,7 +23,7 @@ L.Control.Measure = L.Control.extend({
     primaryLengthUnit: 'meters',
     secondaryLengthUnit: 'miles',
     primaryAreaUnit: 'sqmeters',
-    secondaryAreaUnit: 'sqmiles',
+    secondaryAreaUnit: 'hectares',
     activeColor: '#c6e6a1', // base color for map features while actively measuring
     completedColor: '#edfade', // base color for permenant features generated from completed measure
     captureZIndex: 10000, // z-index of the marker used to capture measure events
