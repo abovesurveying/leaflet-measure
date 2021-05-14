@@ -9,6 +9,9 @@ export default model => {
     <p>${model.lengthDisplay} Perimeter</p>
     <ul class="tasks">
       <li><a href="#" class="js-zoomto zoomto">Center on this area</a></li>
+      <li><a href="#" class="js-punchlist addToPunchList" objectType="5">Add to punch list</a></li>
+    </ul>
+    <ul class="tasks">
       <li><a href="#" class="js-deletemarkup deletemarkup">Delete</a></li>
       ${save}
     </ul>
